@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t cristobalpina/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run cristobalpina/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t cristobalpina/multi-client ./client
+  - docker build -t cristobalpina/multi-nginx ./nginx
+  - docker build -t cristobalpina/multi-server ./server
+  - docker build -t cristobalpina/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --pasword-stdin
+  # Push images to docker hub
+  - docker push cristobalpina/multi-client
+  - docker push cristobalpina/multi-nginx
+  - docker push cristobalpina/multi-server
+  - docker push cristobalpina/multi-worker
